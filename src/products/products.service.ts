@@ -1,25 +1,31 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Product } from './product.entity';
+// src/products/products.service.ts
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { ProductsRepository } from './products.repository';
+import { CreateProductDto, UpdateProductDto } from './dto/product.dto';
+import { Product } from './interfaces/product.interface';
 
 @Injectable()
 export class ProductsService {
-  constructor(
-    @InjectRepository(Product)
-    private productsRepository: Repository<Product>,
-  ) {}
+  constructor(private readonly productsRepository: ProductsRepository) {}
 
-  create(name: string): Promise<Product> {
-    const product = this.productsRepository.create({ name });
-    return this.productsRepository.save(product);
+  create(createProductDto: CreateProductDto): Product {
+    const newProduct = { id: Date.now(), ...createProductDto };
+    return this.productsRepository.create(newProduct);
   }
 
-  findAll(): Promise<Product[]> {
-    return this.productsRepository.find();
+  findAll(): Product[] {
+    return this.productsRepository.findAll();
   }
 
-  findOne(id: number): Promise<Product> {
-    return this.productsRepository.findOneBy({ id });
+  findOne(id: number): Product {
+    return this.productsRepository.findOne(id);
+  }
+
+  update(id: number, updateProductDto: UpdateProductDto): Product {
+    return this.productsRepository.update(id, updateProductDto);
+  }
+
+  remove(id: number): Product {
+    return this.productsRepository.remove(id);
   }
 }

@@ -1,25 +1,31 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Customer } from './customer.entity';
+// src/customers/customers.service.ts
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { CustomersRepository } from './customers.repository';
+import { CreateCustomerDto, UpdateCustomerDto } from './dto/customer.dto';
+import { Customer } from './interfaces/customer.interface';
 
 @Injectable()
 export class CustomersService {
-  constructor(
-    @InjectRepository(Customer)
-    private customersRepository: Repository<Customer>,
-  ) {}
+  constructor(private readonly customersRepository: CustomersRepository) {}
 
-  create(name: string): Promise<Customer> {
-    const customer = this.customersRepository.create({ name });
-    return this.customersRepository.save(customer);
+  create(createCustomerDto: CreateCustomerDto): Customer {
+    const newCustomer = { id: Date.now(), ...createCustomerDto };
+    return this.customersRepository.create(newCustomer);
   }
 
-  findAll(): Promise<Customer[]> {
-    return this.customersRepository.find();
+  findAll(): Customer[] {
+    return this.customersRepository.findAll();
   }
 
-  findOne(id: number): Promise<Customer> {
-    return this.customersRepository.findOneBy({ id });
+  findOne(id: number): Customer {
+    return this.customersRepository.findOne(id);
+  }
+
+  update(id: number, updateCustomerDto: UpdateCustomerDto): Customer {
+    return this.customersRepository.update(id, updateCustomerDto);
+  }
+
+  remove(id: number): Customer {
+    return this.customersRepository.remove(id);
   }
 }

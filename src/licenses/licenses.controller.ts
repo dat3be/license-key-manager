@@ -1,63 +1,34 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Get,
-  NotFoundException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+// src/licenses/licenses.controller.ts
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { LicensesService } from './licenses.service';
+import { CreateLicenseDto, UpdateLicenseDto } from './dto/license.dto';
 
 @Controller('licenses')
 export class LicensesController {
   constructor(private readonly licensesService: LicensesService) {}
 
   @Post()
-  async create(@Body() body: { productId: number; customerId: number }) {
-    try {
-      return await this.licensesService.create(body.productId, body.customerId);
-    } catch (error) {
-      console.error('Error creating license:', error);
-      throw new InternalServerErrorException('Failed to create license');
-    }
+  create(@Body() createLicenseDto: CreateLicenseDto) {
+    return this.licensesService.create(createLicenseDto);
   }
 
   @Get()
-  async findAll() {
-    try {
-      return await this.licensesService.findAll();
-    } catch (error) {
-      console.error('Error finding licenses:', error);
-      throw new InternalServerErrorException('Failed to find licenses');
-    }
+  findAll() {
+    return this.licensesService.findAll();
   }
 
-  @Post('validate')
-  async validate(@Body() body: { key: string }) {
-    try {
-      const valid = await this.licensesService.validate(body.key);
-      if (valid) {
-        return { valid };
-      } else {
-        throw new NotFoundException('License key not found');
-      }
-    } catch (error) {
-      console.error('Error validating license:', error);
-      throw new InternalServerErrorException('Failed to validate license');
-    }
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.licensesService.findOne(+id);
   }
 
-  @Post('assign-domain')
-  async assignDomain(@Body() body: { key: string; domain: string }) {
-    try {
-      return await this.licensesService.assignDomain(body.key, body.domain);
-    } catch (error) {
-      console.error('Error assigning domain:', error);
-      if (error instanceof NotFoundException) {
-        throw error;
-      } else {
-        throw new InternalServerErrorException('Failed to assign domain');
-      }
-    }
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateLicenseDto: UpdateLicenseDto) {
+    return this.licensesService.update(+id, updateLicenseDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.licensesService.remove(+id);
   }
 }

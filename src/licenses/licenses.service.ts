@@ -1,66 +1,31 @@
-import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { License } from './license.entity';
-import { v4 as uuidv4 } from 'uuid';
+// src/licenses/licenses.service.ts
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { LicensesRepository } from './licenses.repository';
+import { CreateLicenseDto, UpdateLicenseDto } from './dto/license.dto';
+import { License } from './interfaces/license.interface';
 
 @Injectable()
 export class LicensesService {
-  constructor(
-    @InjectRepository(License)
-    private licensesRepository: Repository<License>,
-  ) {}
+  constructor(private readonly licensesRepository: LicensesRepository) {}
 
-  async create(productId: number, customerId: number): Promise<License> {
-    try {
-      const key = uuidv4();
-      const license = this.licensesRepository.create({
-        key,
-        product: { id: productId },
-        customer: { id: customerId },
-      });
-      return await this.licensesRepository.save(license);
-    } catch (error) {
-      console.error('Error creating license:', error);
-      throw new InternalServerErrorException('Failed to create license');
-    }
+  create(createLicenseDto: CreateLicenseDto): License {
+    const newLicense = { id: Date.now(), ...createLicenseDto };
+    return this.licensesRepository.create(newLicense);
   }
 
-  async findAll(): Promise<License[]> {
-    try {
-      return await this.licensesRepository.find({ relations: ['product', 'customer'] });
-    } catch (error) {
-      console.error('Error finding licenses:', error);
-      throw new InternalServerErrorException('Failed to find licenses');
-    }
+  findAll(): License[] {
+    return this.licensesRepository.findAll();
   }
 
-  async validate(key: string): Promise<boolean> {
-    try {
-      const license = await this.licensesRepository.findOne({ where: { key } });
-      return !!license;
-    } catch (error) {
-      console.error('Error validating license:', error);
-      throw new InternalServerErrorException('Failed to validate license');
-    }
+  findOne(id: number): License {
+    return this.licensesRepository.findOne(id);
   }
 
-  async assignDomain(key: string, domain: string): Promise<License> {
-    try {
-      const license = await this.licensesRepository.findOne({ where: { key } });
-      if (license && !license.domain) {
-        license.domain = domain;
-        return await this.licensesRepository.save(license);
-      } else {
-        throw new NotFoundException('License key not found or already assigned to a domain');
-      }
-    } catch (error) {
-      console.error('Error assigning domain to license:', error);
-      if (error instanceof NotFoundException) {
-        throw error;
-      } else {
-        throw new InternalServerErrorException('Failed to assign domain');
-      }
-    }
+  update(id: number, updateLicenseDto: UpdateLicenseDto): License {
+    return this.licensesRepository.update(id, updateLicenseDto);
+  }
+
+  remove(id: number): License {
+    return this.licensesRepository.remove(id);
   }
 }

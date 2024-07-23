@@ -1,12 +1,13 @@
+// src/licenses/licenses.module.ts
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { License } from './license.entity';
 import { LicensesService } from './licenses.service';
 import { LicensesController } from './licenses.controller';
+import { LicensesRepository } from './licenses.repository';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([License])],
-  providers: [LicensesService],
+  imports: [],
+  providers: [LicensesService, LicensesRepository],
   controllers: [LicensesController],
+  exports: [LicensesService],
 })
 export class LicensesModule {}
